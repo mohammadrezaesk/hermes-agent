@@ -4574,6 +4574,16 @@ class GatewayRunner:
             adapter.set_busy_session_handler(self._handle_active_session_busy_message)
             adapter.set_topic_recovery_fn(self._recover_telegram_topic_thread_id)
             adapter._busy_text_mode = self._busy_text_mode
+            set_gateway_control = getattr(adapter, "set_gateway_control", None)
+            if callable(set_gateway_control):
+                _under_service = bool(os.environ.get("INVOCATION_ID"))
+                _in_container = os.path.exists("/.dockerenv") or os.path.exists("/run/.containerenv")
+                set_gateway_control(
+                    restart=lambda: self.request_restart(
+                        detached=not (_under_service or _in_container),
+                        via_service=bool(_under_service or _in_container),
+                    ),
+                )
             
             # Try to connect
             logger.info("Connecting to %s...", platform.value)
@@ -17188,7 +17198,51 @@ class GatewayRunner:
 
         def progress_callback(event_type: str, tool_name: str = None, preview: str = None, args: dict = None, **kwargs):
             """Callback invoked by agent on tool lifecycle events."""
-            if not progress_queue or not _run_still_current():
+            if not _run_still_current():
+                return
+
+            _live_adapter = self.adapters.get(source.platform)
+            if event_type == "tool.started" and _live_adapter is not None:
+                _emit_started = getattr(_live_adapter, "emit_tool_started", None)
+                if callable(_emit_started):
+                    try:
+                        safe_schedule_threadsafe(
+                            _emit_started(
+                                source.chat_id,
+                                tool_name,
+                                preview,
+                                args or {},
+                            ),
+                            _loop_for_step,
+                            logger=logger,
+                            log_message="emit_tool_started scheduling error",
+                        )
+                    except Exception:
+                        logger.debug(
+                            "emit_tool_started failed for %s",
+                            getattr(_live_adapter, "name", source.platform),
+                            exc_info=True,
+                        )
+                    return
+
+            if event_type == "tool.completed" and _live_adapter is not None:
+                _emit_completed = getattr(_live_adapter, "emit_tool_completed", None)
+                if callable(_emit_completed):
+                    try:
+                        safe_schedule_threadsafe(
+                            _emit_completed(source.chat_id, tool_name, **kwargs),
+                            _loop_for_step,
+                            logger=logger,
+                            log_message="emit_tool_completed scheduling error",
+                        )
+                    except Exception:
+                        logger.debug(
+                            "emit_tool_completed failed for %s",
+                            getattr(_live_adapter, "name", source.platform),
+                            exc_info=True,
+                        )
+
+            if not progress_queue:
                 return
 
             # First-touch onboarding: the first time a tool takes longer than
@@ -19941,6 +19995,12 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
         name="cron-ticker",
     )
     cron_thread.start()
+
+    event_loop = asyncio.get_running_loop()
+    for adapter in runner.adapters.values():
+        set_context = getattr(adapter, "set_cron_tick_context", None)
+        if callable(set_context):
+            set_context(runner.adapters, event_loop)
     
     # Wait for shutdown
     await runner.wait_for_shutdown()

@@ -67,6 +67,9 @@ CONFIGURABLE_TOOLSETS = [
     ("tts",             "🔊 Text-to-Speech",            "text_to_speech"),
     ("skills",          "📚 Skills",                    "list, view, manage"),
     ("todo",            "📋 Task Planning",             "todo"),
+    ("project_manager", "📊 Project Manager",          "CEO portfolio read/update tools"),
+    ("dashboard_issues", "🚨 Critical Issues",        "Dashboard escalations read/create/update"),
+    ("dashboard_actions", "✅ Action Center",         "Dashboard pending approvals"),
     ("memory",          "💾 Memory",                    "persistent memory across sessions"),
     ("context_engine",  "🧩 Context Engine",            "runtime tools from the active context engine"),
     ("session_search",  "🔎 Session Search",            "search past conversations"),
@@ -150,6 +153,9 @@ def _xai_credentials_present() -> bool:
 _TOOLSET_PLATFORM_RESTRICTIONS: Dict[str, Set[str]] = {
     "discord": {"discord"},
     "discord_admin": {"discord"},
+    "project_manager": {"gateway-ui", "cron"},
+    "dashboard_issues": {"gateway-ui", "cron"},
+    "dashboard_actions": {"gateway-ui", "cron"},
 }
 
 

@@ -1,0 +1,39 @@
+name: gateway-ui-platform
+label: Gateway UI
+kind: platform
+version: 1.0.0
+description: >
+  WebSocket server adapter for the CEO Gateway UI (React client).
+  Listens for browser connections on a local port and relays chat
+  messages to the Hermes agent, streaming assistant text, tool calls,
+  and typing indicators back to the UI.
+author: Algonet
+optional_env:
+  - name: GATEWAY_UI_WS_HOST
+    description: "WebSocket listen host (default: 127.0.0.1)"
+    prompt: "Gateway UI WebSocket host"
+    password: false
+  - name: GATEWAY_UI_WS_PORT
+    description: "WebSocket listen port (default: 8765)"
+    prompt: "Gateway UI WebSocket port"
+    password: false
+  - name: GATEWAY_UI_ALLOWED_USERS
+    description: "Comma-separated browser session chat_ids allowed to talk to the agent"
+    prompt: "Allowed chat IDs (comma-separated)"
+    password: false
+  - name: GATEWAY_UI_ALLOW_ALL_USERS
+    description: "Allow any connected browser session (default for local dev)"
+    prompt: "Allow all sessions? (true/false)"
+    password: false
+  - name: GATEWAY_UI_USER_ID
+    description: "Stable Hermes user id shared by all UI chats (avoids per-chat pairing)"
+    prompt: "Gateway UI user id"
+    password: false
+  - name: GATEWAY_UI_WORKSPACE_ROOT
+    description: "Workspace directory for the file browser (defaults to Hermes terminal.cwd)"
+    prompt: "Workspace root path"
+    password: false
+  - name: GATEWAY_UI_HOME_CHANNEL
+    description: "Default chat_id for cron / notification delivery"
+    prompt: "Home channel chat_id (or empty)"
+    password: false

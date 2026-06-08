@@ -209,6 +209,53 @@ TOOLSETS = {
         "tools": ["todo"],
         "includes": []
     },
+
+    "project_manager": {
+        "description": (
+            "CEO project portfolio for Gateway UI — read and update structured "
+            "project records (progress, budget, status, logs)"
+        ),
+        "tools": [
+            "list_projects",
+            "read_project",
+            "update_progress_project",
+            "update_budget_project",
+            "update_status_project",
+            "add_log_to_project",
+            "update_project_fields",
+        ],
+        "includes": [],
+    },
+
+    "dashboard_issues": {
+        "description": (
+            "CEO dashboard critical issues — create, read, and update "
+            "escalations shown on the Gateway UI home page"
+        ),
+        "tools": [
+            "list_dashboard_issues",
+            "read_dashboard_issue",
+            "create_dashboard_issue",
+            "update_dashboard_issue",
+            "add_log_to_dashboard_issue",
+        ],
+        "includes": [],
+    },
+
+    "dashboard_actions": {
+        "description": (
+            "CEO dashboard action center — queue and resolve pending approvals"
+        ),
+        "tools": [
+            "list_dashboard_actions",
+            "read_dashboard_action",
+            "create_dashboard_action",
+            "update_dashboard_action",
+            "approve_dashboard_action",
+            "decline_dashboard_action",
+        ],
+        "includes": [],
+    },
     
     "memory": {
         "description": "Persistent memory across sessions (personal notes + user profile)",
@@ -410,7 +457,21 @@ TOOLSETS = {
         # the user explicitly enables them.
         "description": "Default cron toolset - same core tools as hermes-cli; gated by `hermes tools`",
         "tools": _HERMES_CORE_TOOLS,
-        "includes": []
+        "includes": ["project_manager", "dashboard_issues", "dashboard_actions"],
+    },
+
+    "hermes-gateway-ui": {
+        "description": (
+            "Gateway UI CEO assistant — core tools plus project portfolio "
+            "and dashboard management"
+        ),
+        "tools": [],
+        "includes": [
+            "hermes-cli",
+            "project_manager",
+            "dashboard_issues",
+            "dashboard_actions",
+        ],
     },
 
     "hermes-telegram": {

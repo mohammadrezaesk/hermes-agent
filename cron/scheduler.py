@@ -166,6 +166,12 @@ _parallel_pool_max_workers: Optional[int] = None
 _running_job_ids: set = set()
 _running_lock = threading.Lock()
 
+
+def is_job_running(job_id: str) -> bool:
+    """Return True when a scheduler worker is currently executing this job."""
+    with _running_lock:
+        return job_id in _running_job_ids
+
 # Sequential (env/context-mutating) cron jobs — workdir/profile jobs that touch
 # process-global runtime state — must run one at a time, but must NOT block the
 # ticker thread.  A persistent single-thread executor preserves ordering across

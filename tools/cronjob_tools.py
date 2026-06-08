@@ -103,8 +103,11 @@ _CRON_EXFIL_COMMAND_PATTERNS = [
     (rf'curl\s+[^\n]*(?:-H|--header)\s+["\']Authorization:\s*(?:Bearer|token)\s+{_CRON_SECRET_VAR_RE}["\']', "exfil_curl_auth_header"),
 ]
 
+# U+200C (ZWNJ) is intentionally omitted — required Persian/Arabic typography
+# (e.g. همه‌ی, پروژه‌های). It is stripped only during threat-pattern matching
+# in ``_normalize_cron_prompt_for_scan`` so it cannot split injection keywords.
 _CRON_INVISIBLE_CHARS = {
-    '\u200b', '\u200c', '\u200d', '\u2060', '\ufeff',
+    '\u200b', '\u200d', '\u2060', '\ufeff',
     '\u202a', '\u202b', '\u202c', '\u202d', '\u202e',
 }
 
@@ -210,6 +213,16 @@ def _strip_invisible_unicode(prompt: str) -> tuple[str, list[str]]:
     return ''.join(cleaned), sorted(removed)
 
 
+def _normalize_cron_prompt_for_scan(prompt: str) -> str:
+    """Normalize a user cron prompt before threat-pattern matching.
+
+    ZWNJ (U+200C) is legitimate in Persian/Arabic copy and must survive in
+    the stored prompt, but we drop it here so it cannot be used to split
+    injection keywords (``ignore\\u200cprevious`` → ``ignoreprevious``).
+    """
+    return prompt.replace('\u200c', '')
+
+
 def _scan_cron_prompt(prompt: str) -> str:
     """Scan the USER-SUPPLIED cron prompt for critical threats.
 
@@ -219,7 +232,7 @@ def _scan_cron_prompt(prompt: str) -> str:
     there is a smoking gun, not prose. Returns an error string when
     blocked, else empty string.
     """
-    prompt_to_scan = _strip_cron_safe_constructs(prompt)
+    prompt_to_scan = _normalize_cron_prompt_for_scan(_strip_cron_safe_constructs(prompt))
     invisible_err = _check_invisible_unicode(prompt_to_scan)
     if invisible_err:
         return invisible_err

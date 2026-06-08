@@ -529,8 +529,12 @@ class TestMessageStorage:
 
         conv = db.get_messages_as_conversation("s1")
         assert len(conv) == 2
-        assert conv[0] == {"role": "user", "content": "Hello"}
-        assert conv[1] == {"role": "assistant", "content": "Hi!"}
+        assert conv[0]["role"] == "user"
+        assert conv[0]["content"] == "Hello"
+        assert conv[0].get("sent_at")
+        assert conv[1]["role"] == "assistant"
+        assert conv[1]["content"] == "Hi!"
+        assert conv[1].get("sent_at")
 
     def test_platform_message_id_round_trips(self, db):
         """Platform-side message ids (yuanbao msg_id, telegram update_id, …)
